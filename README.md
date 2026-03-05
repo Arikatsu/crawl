@@ -1,25 +1,57 @@
 # Overview
 
-A technical interview project for data engineers.
+A logo scraper in Rust. 
+Scrape mostly high quality logo sources to keep precision as high as possible.
+Logs metrics at the end of execution.
 
-The objective is to write a python program that will collect as many logos as you can across across a sample of websites.
+# Usage
 
+Run the nix environment:
+```bash
+nix-shell
+```
 
-# Objectives
+Then run the scraper:
+```bash
+cargo run --release < websites.csv > logos.csv
+```
 
-* Write a program that will crawl a list of website and output their logo URLs.
-* The program should read domain names on `STDIN` and write a CSV of domain and logo URL to `STDOUT`.
-* A `websites.csv` list is included as a sample to crawl.
-* You can't always get it right, but try to keep precision and recall as high as you can. Be prepared to explain ways you can improve. Bonus points if you can measure.
-* Be prepared to discuss the bottlenecks as you scale up to millions of websites. You don't need to implement all the optimizations, but be able to talk about the next steps to scale it for production.
-* Favicons aren't an adequate substitute for a logo, but if you choose, it's also valuable to extract as an additional field.
-* Spare your time on implementing features that would be time consuming, but make a note of them so we can discuss the ideas.
-* Please implement using python.
-* Please keep 3rd party dependencies to a minimum, unless you feel there's an essential reason to add a dependency.
-* We use [Nix](https://nixos.org/nix/) for package management. If you add your dependencies to `default.nix`, then it's easy for us to run your code. Install nix and launch the environment with `nix-shell` (works on Linux, macOS, and most unixes).
+### CLI options:
 
-Feel free to complete as much or as little of the project as you'd like. Spare your time from implementing features that would be time consuming or uninteresting, and focus instead on parts that would make for better discussion when reviewing together. Make notes of ideas, bugs, and deficiencies to discuss together.
+Providing max concurrent tasks at a time:
+```bash
+cargo run --release -- -c 50 < websites.csv > logos.csv
+```
 
-We recommend not using GPT, Copilot, or similar tools to generate code for this project, but if you do, please label that code clearly so we know what code you personally wrote. That code is rarely up to our standard, so we don't want it to reflect negatively on our assessment.
+Muting info logs:
+```bash
+cargo run --release -- -q < websites.csv > logos.csv
+```
 
-There's no time limit. Spend as much or as little time on it as you'd like. Clone this git repository (don't fork), and push to a new repository when you're ready to share. We'll schedule a follow-up call to review.
+# Metrics
+
+At the end of execution, the scraper logs the following metrics:
+- Total number of websites processed
+- Total number of HTTP errors
+- Total number of network errors
+- Number of successfully reached websites
+- Total number of logos successfully scraped
+
+e.g.:
+```
+ --- INTERNAL CRAWL METRICS ---
+Total Domains Processed: 1000
+- HTTP Errors:       90
+- Network Errors:    204
+- Reachable Domains: 706
+--------------------------------
+Logos Found:         506 (True Hit Rate: 71.7% of reachable HTML)
+--------------------------------
+```
+
+# Notes
+
+- I ended up updating the nix-pkgs pin to include the latest Rust version due to some dependencies requiring it.
+- The scraper is designed to be time and memory efficient, using asynchronous tasks to handle multiple websites concurrently and also streaming the HTML the content at the same time to not have to build a full DOM tree in memory.
+- The number of concurrent tasks are kept in check with a semaphore, helps in backpressuring the logos from stdin and not overwhelming the system with too many tasks at once.
+
