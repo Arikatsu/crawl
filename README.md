@@ -51,7 +51,7 @@ Logos Found:         506 (True Hit Rate: 71.7% of reachable HTML)
 
 # Notes
 
-- I ended up updating the nix-pkgs pin to include the latest Rust version due to some dependencies requiring it.
+- I ended up updating the nix-pkgs pin to include the latest Rust version. The original 2024 pin restricted the compiler to Rust 1.77, which caused MSRV conflicts with modern, secure TLS and URL-parsing crates required by reqwest.
 - The scraper is designed to be time and memory efficient, using asynchronous tasks to handle multiple websites concurrently and also streaming the HTML the content at the same time to not have to build a full DOM tree in memory.
 - The number of concurrent tasks are kept in check with a semaphore, helps in backpressuring the logos from stdin and not overwhelming the system with too many tasks at once.
 
